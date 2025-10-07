@@ -76,7 +76,7 @@ def fancy_print(
     s: str,
     end: str = '\n',
     perform_logging: bool = False,
-    print_interval: float = 0.02,
+    print_interval: float = 0.015,
 ) -> None:
     if not isinstance(s, str):
         raise TypeError(f'Content should be str but got {type(s)}')

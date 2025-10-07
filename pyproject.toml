@@ -1,3 +1,16 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "fancy_print"
+version = "0.1.0"
+description = "Tiny utility that prints strings one character at a time."
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [{ name = "Zhaolun Zou" }]
+license = { file = "LICENSE" }
+dependencies = []
+
+[project.scripts]
+fancy_print = "fancy_print.fancy_print:main"
