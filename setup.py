@@ -8,7 +8,7 @@ setup(
     author='Zhaolun Zou',
     description=('A tiny utility to print strings character by character '
                  'like animation.'),
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     entry_points={
         'console_scripts': [
             'fancy_print=fancy_print.fancy_print:main',
