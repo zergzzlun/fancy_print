@@ -19,7 +19,7 @@ class PrintMsg:
 
 class FancyPrinter:
     def __init__(self) -> None:
-        self._ingress: SimpleQueue[PrintMsg] = SimpleQueue()
+        self._ingress: SimpleQueue = SimpleQueue()
         self._file = sys.stdout
         self._is_tty = hasattr(self._file, 'isatty') and self._file.isatty()
 
@@ -76,7 +76,7 @@ def fancy_print(
     s: str,
     end: str = '\n',
     perform_logging: bool = False,
-    print_interval: float = 0.015,
+    print_interval: float = 0.02,
 ) -> None:
     if not isinstance(s, str):
         raise TypeError(f'Content should be str but got {type(s)}')
@@ -110,7 +110,6 @@ def main():
         fancy_print(f'Testing {test_code}......', end='')
         time.sleep(0.5)
         fancy_print(' Complete.')
-        time.sleep(0.1)
     test_fancy_print('A')
     test_fancy_print('B')
     test_fancy_print('C')
