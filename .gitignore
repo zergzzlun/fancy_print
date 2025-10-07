@@ -1,2 +1,11 @@
-/fancy_print.egg-info/
-/build/
+*.egg-info/
+build/
+dist/
+__pycache__/
+*.py[cod]
+*.swp
+*.swo
+*.swx
+*~
+.venv/
+.coverage
