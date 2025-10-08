@@ -282,7 +282,8 @@ def main():
         test_fancy_print('C')
         fancy_print('Test Session Completed.', color='white',
                     print_interval=0.05)
-        fancy_print('-' * 32, print_interval=0)
+        fancy_print('-' * 32, print_interval=0, color='#808080')
+    fancy_print('\n\n' + '-' * 32, print_interval=0, color='#005800')
 
 
 if __name__ == '__main__':
