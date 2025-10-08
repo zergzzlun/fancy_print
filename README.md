@@ -1,6 +1,6 @@
 # fancy_print
 
-Tiny utility that prints strings one character at a time.
+Tiny non-blocking "typewriter" printing for Python — render text character by character without slowing your code.
 
 ## Install
 
@@ -11,12 +11,12 @@ pip install -e .
 ## Usage
 
 ```python
-from fancy_print import fancy_print
+from fancy_print import fancy_print, fancy_print_flush
 
 # behaves like print()
 fancy_print('Hello', 'world!', sep=', ', end='!\n')
 
-# log output and slow down rendering
+# log output and control pacing without blocking callers
 fancy_print('Processing', perform_logging=True, print_interval=0.05)
 ```
 
