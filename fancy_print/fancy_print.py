@@ -3,12 +3,12 @@ import atexit
 import sys
 import time
 import logging
-from threading import Event, Thread
+from threading import Event, Thread, Lock
 from dataclasses import dataclass
 from queue import Queue, Empty
-from typing import Optional
+from typing import Optional, List
 
-__all__ = ['fancy_print', 'fancy_print_flush']
+__all__ = ['fancy_print', 'fancy_print_flush', 'configure_fancy_print']
 
 
 @dataclass
@@ -26,11 +26,18 @@ class FancyPrinter:
         self._is_tty = hasattr(self._file, 'isatty') and self._file.isatty()
         self._worker: Optional[Thread] = None
         self._stop = Event()
+        self._max_queue: Optional[int] = None
+        self._lock = Lock()
 
     def enqueue(self, msg: PrintMsg) -> None:
-        self._refresh_output_target()
-        self._ensure_worker()
-        self._ingress.put_nowait(msg)
+        overflow: List[PrintMsg] = []
+        with self._lock:
+            self._refresh_output_target()
+            self._ensure_worker()
+            overflow = self._collect_overflow_locked()
+            self._ingress.put_nowait(msg)
+        for old_msg in overflow:
+            self._print_sync(old_msg)
 
     def flush(self, timeout: Optional[float] = None) -> None:
         if timeout is None:
@@ -98,6 +105,22 @@ class FancyPrinter:
                 self._ingress.task_done()
         self._worker = None
         self._stop.clear()
+
+    def _collect_overflow_locked(self) -> List[PrintMsg]:
+        if self._max_queue is None:
+            return []
+        trimmed: List[PrintMsg] = []
+        while self._ingress.qsize() >= self._max_queue:
+            try:
+                queued = self._ingress.get_nowait()
+            except Empty:
+                break
+            if queued is None:
+                self._ingress.task_done()
+                continue
+            trimmed.append(queued)
+            self._ingress.task_done()
+        return trimmed
 
     def _print_line(self, msg: PrintMsg) -> None:
         self._file.write(msg.text)
@@ -180,6 +203,14 @@ def fancy_print_flush(timeout: Optional[float] = None) -> None:
     if printer is None:
         return
     printer.flush(timeout)
+
+
+def configure_fancy_print(*, max_queue: Optional[int] = None) -> None:
+    printer = _get_printer()
+    if max_queue is not None and max_queue <= 0:
+        raise ValueError('max_queue must be positive when provided')
+    with printer._lock:
+        printer._max_queue = max_queue
 
 
 def main():
