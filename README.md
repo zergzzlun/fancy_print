@@ -1,6 +1,11 @@
 # fancy_print
 
-Tiny non-blocking "typewriter" printing for Python — render text character by character without slowing your code.
+<p align="left">
+  <img src="assets/logo.png" alt="fancy_print logo" width="256" />
+</p>
+
+Tiny non-blocking "typewriter" and colorful printing for Python
+— render text character by character without slowing your code.
 
 ## Install
 
@@ -17,7 +22,7 @@ from fancy_print import fancy_print
 
 fancy_print('Hello', 'world!', sep=', ', end='!\n')
 fancy_print('Processing', perform_logging=True, print_interval=0.05)
-fancy_print('Success', color='#FF0058')
+fancy_print('Success', color='#ff0058')  # colour on TTYs
 ```
 
 ### API Reference
