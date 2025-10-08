@@ -6,9 +6,21 @@ import logging
 from threading import Event, Thread, Lock
 from dataclasses import dataclass
 from queue import Queue, Empty
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 __all__ = ['fancy_print', 'fancy_print_flush', 'configure_fancy_print']
+
+_ANSI_RESET = '\033[0m'
+_NAMED_COLORS = {
+    'black': (0, 0, 0),
+    'red': (255, 0, 0),
+    'green': (0, 255, 0),
+    'yellow': (255, 255, 0),
+    'blue': (0, 0, 255),
+    'magenta': (255, 0, 255),
+    'cyan': (0, 255, 255),
+    'white': (255, 255, 255),
+}
 
 
 @dataclass
@@ -17,6 +29,7 @@ class PrintMsg:
     end: str
     perform_logging: bool
     print_interval: float
+    color_code: Optional[str]
 
 
 class FancyPrinter:
@@ -128,6 +141,9 @@ class FancyPrinter:
         self._file.flush()
 
     def _print_tty(self, msg: PrintMsg) -> None:
+        if msg.color_code:
+            self._file.write(msg.color_code)
+            self._file.flush()
         next_t = time.perf_counter()
         for ch in msg.text:
             self._file.write(ch)
@@ -137,6 +153,8 @@ class FancyPrinter:
                 remain = next_t - time.perf_counter()
                 if remain > 0:
                     time.sleep(remain)
+        if msg.color_code:
+            self._file.write(_ANSI_RESET)
         self._file.write(msg.end)
         self._file.flush()
 
@@ -167,6 +185,7 @@ def fancy_print(
     sep: str = ' ',
     perform_logging: bool = False,
     print_interval: float = 0.015,
+    color: Optional[str] = None,
 ) -> None:
     if not isinstance(end, str):
         raise TypeError(f'Parameter end should be str but got {type(end)}')
@@ -184,6 +203,7 @@ def fancy_print(
         raise ValueError(
             f'Parameter print_interval must be non-negative: {print_interval}'
         )
+    color_code = _resolve_color(color)
 
     text = sep.join(str(obj) for obj in objects) if objects else ''
 
@@ -192,6 +212,7 @@ def fancy_print(
         end=end,
         perform_logging=perform_logging,
         print_interval=print_interval,
+        color_code=color_code,
     )
 
     printer = _get_printer()
@@ -213,14 +234,55 @@ def configure_fancy_print(*, max_queue: Optional[int] = None) -> None:
         printer._max_queue = max_queue
 
 
+def _resolve_color(color: Optional[str]) -> Optional[str]:
+    if color is None:
+        return None
+    if not isinstance(color, str):
+        raise TypeError(f'Parameter color should be str but got {type(color)}')
+    spec = color.strip()
+    if not spec:
+        return None
+    lower = spec.lower()
+    rgb: Optional[Tuple[int, int, int]]
+    if lower in _NAMED_COLORS:
+        rgb = _NAMED_COLORS[lower]
+    else:
+        rgb = _parse_hex_color(spec)
+    if rgb is None:
+        return None
+    return f'\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m'
+
+
+def _parse_hex_color(spec: str) -> Tuple[int, int, int]:
+    token = spec[1:] if spec.startswith('#') else spec
+    if len(token) != 6:
+        raise ValueError(
+            f"Hex color must be 6 characters like '#RRGGBB': {spec}"
+        )
+    try:
+        value = int(token, 16)
+    except ValueError as exc:
+        raise ValueError(
+            f"Hex color must be 6 characters like '#RRGGBB': {spec}"
+        ) from exc
+    r = (value >> 16) & 0xFF
+    g = (value >> 8) & 0xFF
+    b = value & 0xFF
+    return r, g, b
+
+
 def main():
     def test_fancy_print(test_code: str) -> None:
         fancy_print(f'Testing {test_code}......', end='')
         time.sleep(0.5)
-        fancy_print(' Complete.')
-    test_fancy_print('A')
-    test_fancy_print('B')
-    test_fancy_print('C')
+        fancy_print(' Complete.', color='#FF0000')
+    for _ in range(3):
+        test_fancy_print('A')
+        test_fancy_print('B')
+        test_fancy_print('C')
+        fancy_print('Test Session Completed.', color='white',
+                    print_interval=0.05)
+        fancy_print('-' * 32, print_interval=0)
 
 
 if __name__ == '__main__':

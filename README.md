@@ -17,6 +17,7 @@ from fancy_print import fancy_print
 
 fancy_print('Hello', 'world!', sep=', ', end='!\n')
 fancy_print('Processing', perform_logging=True, print_interval=0.05)
+fancy_print('Success', color='#FF0058')
 ```
 
 ### API Reference
@@ -25,9 +26,16 @@ fancy_print('Processing', perform_logging=True, print_interval=0.05)
 from fancy_print import fancy_print, fancy_print_flush, configure_fancy_print
 ```
 
-- `fancy_print(*objects, end='\n', sep=' ', perform_logging=False, print_interval=0.015)`
-  - Accepts any objects, joins them with `sep`, appends `end`, renders asynchronously with per-character delay, and optionally logs via `logging.info`.
-- `fancy_print_flush(timeout=None)`
-  - Blocks until the queue drains (or the optional timeout elapses), ensuring all prior output has been rendered.
-- `configure_fancy_print(max_queue=None)`
-  - Sets a maximum queue length (positive integer). When the queue would overflow, oldest messages are synchronously flushed before enqueuing the new one. Pass `None` to remove the cap.
+#### `fancy_print(*objects, end='\n', sep=' ', perform_logging=False, print_interval=0.015, color=None)`
+- `*objects` (`Any`): values to render.
+- `end` (`str`): terminator appended after the text.
+- `sep` (`str`): inserted between each object.
+- `perform_logging` (`bool`): emit the rendered text via `logging.info` when `True`.
+- `print_interval` (`float`): per-character delay in seconds.
+- `color` (`str | None`): named or hex colour applied on TTYs (e.g. `'red'`, `'#FF6600'`).
+
+#### `fancy_print_flush(timeout=None)`
+- `timeout` (`float | None`): seconds to wait for the queue to empty.
+
+#### `configure_fancy_print(max_queue=None)`
+- `max_queue` (`int | None`): positive integer cap for queued messages (`None` removes the cap).

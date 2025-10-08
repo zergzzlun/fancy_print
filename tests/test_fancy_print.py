@@ -150,3 +150,30 @@ def test_configure_max_queue_flushes_oldest(monkeypatch):
 def test_configure_max_queue_rejects_non_positive():
     with pytest.raises(ValueError):
         configure_fancy_print(max_queue=0)
+
+
+def test_fancy_print_hex_color_on_tty(monkeypatch):
+    class FakeTTY(io.StringIO):
+        def isatty(self) -> bool:
+            return True
+
+    buffer = FakeTTY()
+    monkeypatch.setattr(sys, 'stdout', buffer)
+    fancy_print('colorful', color='#00ff00', print_interval=0)
+    fancy_print_module.fancy_print_flush()
+    output = buffer.getvalue()
+    assert '\033[38;2;0;255;0m' in output
+    assert output.endswith('\033[0m\n')
+
+
+def test_fancy_print_color_skipped_for_non_tty(monkeypatch):
+    buffer = io.StringIO()
+    monkeypatch.setattr(sys, 'stdout', buffer)
+    fancy_print('plain', color='red', print_interval=0)
+    fancy_print_module.fancy_print_flush()
+    assert '\033' not in buffer.getvalue()
+
+
+def test_fancy_print_rejects_bad_color():
+    with pytest.raises(ValueError):
+        fancy_print('oops', color='not-a-color')
