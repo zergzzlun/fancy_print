@@ -73,13 +73,16 @@ def _get_printer() -> FancyPrinter:
 
 
 def fancy_print(
-    s: str,
+    *objects: object,
     end: str = '\n',
+    sep: str = ' ',
     perform_logging: bool = False,
     print_interval: float = 0.015,
 ) -> None:
-    if not isinstance(s, str):
-        raise TypeError(f'Content should be str but got {type(s)}')
+    if not isinstance(end, str):
+        raise TypeError(f'Parameter end should be str but got {type(end)}')
+    if not isinstance(sep, str):
+        raise TypeError(f'Parameter sep should be str but got {type(sep)}')
     if not isinstance(perform_logging, bool):
         raise TypeError(
             f'Parameter perform_logging should be boolean: {perform_logging}'
@@ -93,8 +96,10 @@ def fancy_print(
             f'Parameter print_interval must be non-negative: {print_interval}'
         )
 
+    text = sep.join(str(obj) for obj in objects) if objects else ''
+
     msg = PrintMsg(
-        text=s,
+        text=text,
         end=end,
         perform_logging=perform_logging,
         print_interval=print_interval,
