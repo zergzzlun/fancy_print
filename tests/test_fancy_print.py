@@ -2,6 +2,7 @@ import importlib
 import io
 import logging
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,3 +70,16 @@ def test_fancy_print_rejects_non_numeric_interval():
 def test_fancy_print_rejects_negative_interval():
     with pytest.raises(ValueError):
         fancy_print('hello', print_interval=-0.1)
+
+
+def test_fancy_print_non_blocking(monkeypatch):
+    class FakeTTY(io.StringIO):
+        def isatty(self) -> bool:
+            return True
+
+    buffer = FakeTTY()
+    monkeypatch.setattr(sys, 'stdout', buffer)
+    start = time.perf_counter()
+    fancy_print('slowwwwwwwwwww', end='', print_interval=0.02)
+    duration = time.perf_counter() - start
+    assert duration < 0.01
