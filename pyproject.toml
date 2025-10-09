@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Tiny utility that prints colorful strings one character at a time."
 readme = "README.md"
 requires-python = ">=3.7"
-license = "MIT"
+license = { text = "MIT" }
 authors = [{ name = "Zhaolun Zou" }]
 keywords = ["print", "terminal", "typing", "cli"]
 classifiers = [
