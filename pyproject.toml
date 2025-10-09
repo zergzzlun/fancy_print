@@ -14,3 +14,6 @@ dependencies = []
 
 [project.scripts]
 fancy_print = "fancy_print.fancy_print:main"
+
+[tool.setuptools]
+packages = ["fancy_print"]
