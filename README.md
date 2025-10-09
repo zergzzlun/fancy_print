@@ -1,12 +1,11 @@
 # fancy_print
 
 <p align="left">
-  <img src="assets/logo.png" alt="fancy_print logo" height="256" />
-  <img src="assets/example_01.gif" alt="fancy_print exmpale" height="256" />
+  <img src="https://raw.githubusercontent.com/zergzzlun/fancy_print/refs/heads/main/assets/logo.png" alt="fancy_print logo" height="256" />
+  <img src="https://raw.githubusercontent.com/zergzzlun/fancy_print/refs/heads/main/assets/example_01.gif" alt="fancy_print exmpale" height="256" />
 </p>
 
-Tiny non-blocking "typewriter" and colorful printing for Python
-— render text character by character without slowing your code.
+Tiny non-blocking "typewriter" and colorful printing for Python — render text character by character without slowing your code.
 
 ## Install
 
