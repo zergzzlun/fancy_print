@@ -191,6 +191,12 @@ def wicked_print(
     print_interval: float = 0.015,
     color: Optional[str] = None,
 ) -> None:
+    if _should_print_directly(print_interval):
+        message = sep.join(str(obj) for obj in objects)
+        print(message, end=end)
+        if perform_logging:
+            logging.info(message)
+        return
     if not isinstance(end, str):
         raise TypeError(f'Parameter end should be str but got {type(end)}')
     if not isinstance(sep, str):
@@ -273,6 +279,14 @@ def _parse_hex_color(spec: str) -> Tuple[int, int, int]:
     g = (value >> 8) & 0xFF
     b = value & 0xFF
     return r, g, b
+
+
+def _should_print_directly(print_interval: float) -> bool:
+    if print_interval != 0:
+        return False
+    if getattr(sys, 'ps1', None):
+        return True
+    return bool(getattr(sys, 'flags', None) and sys.flags.interactive)
 
 
 def main():

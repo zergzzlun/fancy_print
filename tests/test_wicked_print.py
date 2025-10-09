@@ -177,3 +177,23 @@ def test_wicked_print_color_skipped_for_non_tty(monkeypatch):
 def test_wicked_print_rejects_bad_color():
     with pytest.raises(ValueError):
         wicked_print('oops', color='not-a-color')
+
+
+def test_wicked_print_prints_directly_in_interactive(monkeypatch, caplog):
+    class DummyFlags:
+        interactive = True
+
+    outputs = []
+
+    def fake_print(msg, end='\n'):
+        outputs.append((msg, end))
+
+    monkeypatch.setattr(sys, 'ps1', '>>> ', raising=False)
+    monkeypatch.setattr(sys, 'flags', DummyFlags(), raising=False)
+    monkeypatch.setattr('builtins.print', fake_print)
+
+    with caplog.at_level(logging.INFO):
+        wicked_print('direct', print_interval=0, perform_logging=True)
+
+    assert outputs == [('direct', '\n')]
+    assert 'direct' in caplog.text
