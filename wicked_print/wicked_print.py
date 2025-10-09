@@ -301,6 +301,7 @@ def main():
         wicked_print('Test Session Completed.', color='white',
                      print_interval=0.05)
         wicked_print('-' * 32, print_interval=0, color='#808080')
+        wicked_print_flush()
     wicked_print('\n\n' + '-' * 32, print_interval=0, color='#005800')
 
 
