@@ -3,7 +3,7 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fancy_print"
+name = "wicked_print"
 version = "0.1.0"
 description = "Tiny utility that prints colorful strings one character at a time."
 readme = "README.md"
@@ -19,12 +19,12 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/yourname/fancy_print"
-Issues = "https://github.com/yourname/fancy_print/issues"
+Homepage = "https://github.com/zergzzlun/wicked_print"
+Issues = "https://github.com/zergzzlun/wicked_print/issues"
 
 [project.scripts]
-fancy_print = "fancy_print.fancy_print:main"
+wicked_print = "wicked_print.wicked_print:main"
 
 [tool.setuptools]
-packages = ["fancy_print"]
+packages = ["wicked_print"]
 license-files = ["LICENSE"]

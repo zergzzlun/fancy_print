@@ -8,89 +8,89 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-for name in ['fancy_print.fancy_print', 'fancy_print']:
+for name in ['wicked_print.wicked_print', 'wicked_print']:
     if name in sys.modules:
         del sys.modules[name]
 
 import pytest
 
-fancy_print_module = importlib.import_module(
-    'fancy_print.fancy_print'
+wicked_module = importlib.import_module(
+    'wicked_print.wicked_print'
 )  # type: ignore
 
-from fancy_print import (
-    fancy_print,
-    fancy_print_flush,
-    configure_fancy_print,
+from wicked_print import (
+    wicked_print,
+    wicked_print_flush,
+    configure_wicked_print,
 )  # type: ignore  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
 def reset_printer_state():
-    printer = fancy_print_module._GLOBAL_FANCY_PRINTER
+    printer = wicked_module._GLOBAL_WICKED_PRINTER
     if printer is not None:
-        fancy_print_module.fancy_print_flush()
+        wicked_module.wicked_print_flush()
         printer.stop()
-    fancy_print_module._GLOBAL_FANCY_PRINTER = None
+    wicked_module._GLOBAL_WICKED_PRINTER = None
     yield
-    printer = fancy_print_module._GLOBAL_FANCY_PRINTER
+    printer = wicked_module._GLOBAL_WICKED_PRINTER
     if printer is not None:
-        fancy_print_module.fancy_print_flush()
+        wicked_module.wicked_print_flush()
         printer.stop()
-    fancy_print_module._GLOBAL_FANCY_PRINTER = None
+    wicked_module._GLOBAL_WICKED_PRINTER = None
 
 
-def test_fancy_print_writes_output(capsys, monkeypatch):
+def test_wicked_print_writes_output(capsys, monkeypatch):
     buffer = io.StringIO()
     monkeypatch.setattr(sys, 'stdout', buffer)
-    fancy_print('hello', end='', print_interval=0)
-    fancy_print_module.fancy_print_flush()
+    wicked_print('hello', end='', print_interval=0)
+    wicked_module.wicked_print_flush()
     assert buffer.getvalue() == 'hello'
 
 
-def test_fancy_print_logs_when_requested(caplog, monkeypatch):
+def test_wicked_print_logs_when_requested(caplog, monkeypatch):
     buffer = io.StringIO()
     monkeypatch.setattr(sys, 'stdout', buffer)
     with caplog.at_level(logging.INFO):
-        fancy_print('log me', perform_logging=True, print_interval=0)
-        fancy_print_module.fancy_print_flush()
+        wicked_print('log me', perform_logging=True, print_interval=0)
+        wicked_module.wicked_print_flush()
     assert 'log me' in caplog.text
 
 
-def test_fancy_print_handles_arbitrary_objects(monkeypatch):
+def test_wicked_print_handles_arbitrary_objects(monkeypatch):
     buffer = io.StringIO()
     monkeypatch.setattr(sys, 'stdout', buffer)
-    fancy_print('value:', 123, {'a': 1}, sep='|', end='', print_interval=0)
-    fancy_print_module.fancy_print_flush()
+    wicked_print('value:', 123, {'a': 1}, sep='|', end='', print_interval=0)
+    wicked_module.wicked_print_flush()
     assert buffer.getvalue() == "value:|123|{'a': 1}"
 
 
-def test_fancy_print_rejects_non_bool_logging():
+def test_wicked_print_rejects_non_bool_logging():
     with pytest.raises(TypeError):
-        fancy_print('hello', perform_logging='yes')  # type: ignore[arg-type]
+        wicked_print('hello', perform_logging='yes')  # type: ignore[arg-type]
 
 
-def test_fancy_print_rejects_non_str_end():
+def test_wicked_print_rejects_non_str_end():
     with pytest.raises(TypeError):
-        fancy_print('hello', end=123)  # type: ignore[arg-type]
+        wicked_print('hello', end=123)  # type: ignore[arg-type]
 
 
-def test_fancy_print_rejects_non_str_sep():
+def test_wicked_print_rejects_non_str_sep():
     with pytest.raises(TypeError):
-        fancy_print('hello', sep=123)  # type: ignore[arg-type]
+        wicked_print('hello', sep=123)  # type: ignore[arg-type]
 
 
-def test_fancy_print_rejects_non_numeric_interval():
+def test_wicked_print_rejects_non_numeric_interval():
     with pytest.raises(TypeError):
-        fancy_print('hello', print_interval='fast')  # type: ignore[arg-type]
+        wicked_print('hello', print_interval='fast')  # type: ignore[arg-type]
 
 
-def test_fancy_print_rejects_negative_interval():
+def test_wicked_print_rejects_negative_interval():
     with pytest.raises(ValueError):
-        fancy_print('hello', print_interval=-0.1)
+        wicked_print('hello', print_interval=-0.1)
 
 
-def test_fancy_print_non_blocking(monkeypatch):
+def test_wicked_print_non_blocking(monkeypatch):
     class FakeTTY(io.StringIO):
         def isatty(self) -> bool:
             return True
@@ -98,7 +98,7 @@ def test_fancy_print_non_blocking(monkeypatch):
     buffer = FakeTTY()
     monkeypatch.setattr(sys, 'stdout', buffer)
     start = time.perf_counter()
-    fancy_print('slowwwwwwwwwww', end='', print_interval=0.02)
+    wicked_print('slowwwwwwwwwww', end='', print_interval=0.02)
     duration = time.perf_counter() - start
     assert duration < 0.01
 
@@ -111,7 +111,7 @@ def test_configure_max_queue_flushes_oldest(monkeypatch):
     buffer = FakeTTY()
     monkeypatch.setattr(sys, 'stdout', buffer)
 
-    orig_print_tty = fancy_print_module.FancyPrinter._print_tty
+    orig_print_tty = wicked_module.WickedPrinter._print_tty
     start_event = threading.Event()
     release_event = threading.Event()
 
@@ -122,25 +122,25 @@ def test_configure_max_queue_flushes_oldest(monkeypatch):
         orig_print_tty(self, msg)
 
     monkeypatch.setattr(
-        fancy_print_module.FancyPrinter,
+        wicked_module.WickedPrinter,
         '_print_tty',
         controlled_print_tty,
         raising=False,
     )
 
-    configure_fancy_print(max_queue=1)
+    configure_wicked_print(max_queue=1)
 
-    fancy_print('slow', end='', print_interval=0.01)
+    wicked_print('slow', end='', print_interval=0.01)
     assert start_event.wait(0.5)
 
-    fancy_print('second', end='', print_interval=0)
-    fancy_print('third', end='', print_interval=0)
+    wicked_print('second', end='', print_interval=0)
+    wicked_print('third', end='', print_interval=0)
 
     assert 'second' in buffer.getvalue()
     assert 'third' not in buffer.getvalue()
 
     release_event.set()
-    fancy_print_flush()
+    wicked_print_flush()
 
     final = buffer.getvalue()
     assert 'third' in final
@@ -149,31 +149,31 @@ def test_configure_max_queue_flushes_oldest(monkeypatch):
 
 def test_configure_max_queue_rejects_non_positive():
     with pytest.raises(ValueError):
-        configure_fancy_print(max_queue=0)
+        configure_wicked_print(max_queue=0)
 
 
-def test_fancy_print_hex_color_on_tty(monkeypatch):
+def test_wicked_print_hex_color_on_tty(monkeypatch):
     class FakeTTY(io.StringIO):
         def isatty(self) -> bool:
             return True
 
     buffer = FakeTTY()
     monkeypatch.setattr(sys, 'stdout', buffer)
-    fancy_print('colorful', color='#00ff00', print_interval=0)
-    fancy_print_module.fancy_print_flush()
+    wicked_print('colorful', color='#00ff00', print_interval=0)
+    wicked_module.wicked_print_flush()
     output = buffer.getvalue()
     assert '\033[38;2;0;255;0m' in output
     assert output.endswith('\033[0m\n')
 
 
-def test_fancy_print_color_skipped_for_non_tty(monkeypatch):
+def test_wicked_print_color_skipped_for_non_tty(monkeypatch):
     buffer = io.StringIO()
     monkeypatch.setattr(sys, 'stdout', buffer)
-    fancy_print('plain', color='red', print_interval=0)
-    fancy_print_module.fancy_print_flush()
+    wicked_print('plain', color='red', print_interval=0)
+    wicked_module.wicked_print_flush()
     assert '\033' not in buffer.getvalue()
 
 
-def test_fancy_print_rejects_bad_color():
+def test_wicked_print_rejects_bad_color():
     with pytest.raises(ValueError):
-        fancy_print('oops', color='not-a-color')
+        wicked_print('oops', color='not-a-color')

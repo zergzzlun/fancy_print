@@ -8,7 +8,11 @@ from dataclasses import dataclass
 from queue import Queue, Empty
 from typing import Optional, List, Tuple
 
-__all__ = ['fancy_print', 'fancy_print_flush', 'configure_fancy_print']
+__all__ = [
+    'wicked_print',
+    'wicked_print_flush',
+    'configure_wicked_print',
+]
 
 _ANSI_RESET = '\033[0m'
 _NAMED_COLORS = {
@@ -32,7 +36,7 @@ class PrintMsg:
     color_code: Optional[str]
 
 
-class FancyPrinter:
+class WickedPrinter:
     def __init__(self) -> None:
         self._ingress: Queue = Queue()
         self._file = sys.stdout
@@ -81,7 +85,7 @@ class FancyPrinter:
         if self._worker and self._worker.is_alive():
             return
         self._stop.clear()
-        self._worker = Thread(target=self._run, name='FancyPrinterWorker')
+        self._worker = Thread(target=self._run, name='WickedPrinterWorker')
         self._worker.daemon = True
         self._worker.start()
 
@@ -159,27 +163,27 @@ class FancyPrinter:
         self._file.flush()
 
 
-_GLOBAL_FANCY_PRINTER: Optional[FancyPrinter] = None
+_GLOBAL_WICKED_PRINTER: Optional[WickedPrinter] = None
 _SHUTDOWN_REGISTERED = False
 
 
-def _get_printer() -> FancyPrinter:
-    global _GLOBAL_FANCY_PRINTER, _SHUTDOWN_REGISTERED
-    if _GLOBAL_FANCY_PRINTER is None:
-        _GLOBAL_FANCY_PRINTER = FancyPrinter()
+def _get_printer() -> WickedPrinter:
+    global _GLOBAL_WICKED_PRINTER, _SHUTDOWN_REGISTERED
+    if _GLOBAL_WICKED_PRINTER is None:
+        _GLOBAL_WICKED_PRINTER = WickedPrinter()
         if not _SHUTDOWN_REGISTERED:
             atexit.register(_shutdown_printer)
             _SHUTDOWN_REGISTERED = True
-    return _GLOBAL_FANCY_PRINTER
+    return _GLOBAL_WICKED_PRINTER
 
 
 def _shutdown_printer() -> None:
-    if _GLOBAL_FANCY_PRINTER is None:
+    if _GLOBAL_WICKED_PRINTER is None:
         return
-    _GLOBAL_FANCY_PRINTER.stop()
+    _GLOBAL_WICKED_PRINTER.stop()
 
 
-def fancy_print(
+def wicked_print(
     *objects: object,
     end: str = '\n',
     sep: str = ' ',
@@ -219,14 +223,14 @@ def fancy_print(
     printer.enqueue(msg)
 
 
-def fancy_print_flush(timeout: Optional[float] = None) -> None:
-    printer = _GLOBAL_FANCY_PRINTER
+def wicked_print_flush(timeout: Optional[float] = None) -> None:
+    printer = _GLOBAL_WICKED_PRINTER
     if printer is None:
         return
     printer.flush(timeout)
 
 
-def configure_fancy_print(*, max_queue: Optional[int] = None) -> None:
+def configure_wicked_print(*, max_queue: Optional[int] = None) -> None:
     printer = _get_printer()
     if max_queue is not None and max_queue <= 0:
         raise ValueError('max_queue must be positive when provided')
@@ -272,18 +276,18 @@ def _parse_hex_color(spec: str) -> Tuple[int, int, int]:
 
 
 def main():
-    def test_fancy_print(test_code: str) -> None:
-        fancy_print(f'Testing {test_code}......', end='')
+    def demo_print(test_code: str) -> None:
+        wicked_print(f'Testing {test_code}......', end='')
         time.sleep(0.5)
-        fancy_print(' Complete.', color='#FF0000')
+        wicked_print(' Complete.', color='#FF0000')
     for _ in range(3):
-        test_fancy_print('A')
-        test_fancy_print('B')
-        test_fancy_print('C')
-        fancy_print('Test Session Completed.', color='white',
-                    print_interval=0.05)
-        fancy_print('-' * 32, print_interval=0, color='#808080')
-    fancy_print('\n\n' + '-' * 32, print_interval=0, color='#005800')
+        demo_print('A')
+        demo_print('B')
+        demo_print('C')
+        wicked_print('Test Session Completed.', color='white',
+                     print_interval=0.05)
+        wicked_print('-' * 32, print_interval=0, color='#808080')
+    wicked_print('\n\n' + '-' * 32, print_interval=0, color='#005800')
 
 
 if __name__ == '__main__':
