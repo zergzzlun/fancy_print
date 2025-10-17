@@ -90,11 +90,8 @@ class WickedPrinter:
         self._worker.start()
 
     def _run(self) -> None:
-        while not self._stop.is_set():
-            try:
-                msg = self._ingress.get(timeout=0.1)
-            except Empty:
-                continue
+        while True:
+            msg = self._ingress.get()
             if msg is None:
                 self._ingress.task_done()
                 break
@@ -104,24 +101,30 @@ class WickedPrinter:
                 self._ingress.task_done()
 
     def stop(self) -> None:
-        if self._worker and self._worker.is_alive():
-            self._stop.set()
-            self._ingress.put_nowait(None)
-            self._worker.join(timeout=1)
-        while True:
-            try:
-                msg = self._ingress.get_nowait()
-            except Empty:
-                break
-            if msg is None:
+        drained: List[PrintMsg] = []
+        with self._lock:
+            worker = self._worker
+            if worker and not worker.is_alive():
+                worker = None
+            if worker:
+                self._stop.set()
+                self._ingress.put_nowait(None)
+                self._ingress.join()
+                worker.join()
+            while True:
+                try:
+                    msg = self._ingress.get_nowait()
+                except Empty:
+                    break
+                if msg is None:
+                    self._ingress.task_done()
+                    continue
+                drained.append(msg)
                 self._ingress.task_done()
-                continue
-            try:
-                self._print_sync(msg)
-            finally:
-                self._ingress.task_done()
-        self._worker = None
-        self._stop.clear()
+            self._worker = None
+            self._stop.clear()
+        for msg in drained:
+            self._print_sync(msg)
 
     def _collect_overflow_locked(self) -> List[PrintMsg]:
         if self._max_queue is None:

@@ -197,3 +197,46 @@ def test_wicked_print_prints_directly_in_interactive(monkeypatch, caplog):
 
     assert outputs == [('direct', '\n')]
     assert 'direct' in caplog.text
+
+
+def test_shutdown_waits_for_slow_tty(monkeypatch):
+    class FakeTTY(io.StringIO):
+        def isatty(self) -> bool:
+            return True
+
+    buffer = FakeTTY()
+    monkeypatch.setattr(sys, 'stdout', buffer)
+
+    orig_print_tty = wicked_module.WickedPrinter._print_tty
+    start_event = threading.Event()
+    release_event = threading.Event()
+
+    def blocking_print(self, msg):
+        start_event.set()
+        release_event.wait()
+        orig_print_tty(self, msg)
+
+    monkeypatch.setattr(
+        wicked_module.WickedPrinter,
+        '_print_tty',
+        blocking_print,
+        raising=False,
+    )
+
+    wicked_print('slow shutdown', end='', print_interval=0.01)
+    assert start_event.wait(0.5)
+
+    shutdown_thread = threading.Thread(
+        target=wicked_module._shutdown_printer
+    )
+    shutdown_thread.start()
+
+    time.sleep(0.2)
+    assert shutdown_thread.is_alive()
+
+    time.sleep(1.05)
+    assert shutdown_thread.is_alive()
+
+    release_event.set()
+    shutdown_thread.join(timeout=1)
+    assert not shutdown_thread.is_alive()
